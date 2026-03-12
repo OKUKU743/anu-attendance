@@ -2,241 +2,506 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ANU QR Student Sign-In</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Africa Nazarene University QR-based student sign-in system for fast, paperless attendance tracking." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Accessibility Policy — ANU Attendance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:      #001f3f;
+      --navy-mid:  #003366;
+      --gold:      #C8971A;
+      --gold-lt:   #F0B429;
+      --white:     #FFFFFF;
+      --bg:        #EEF3F9;
+      --card:      #FFFFFF;
+      --border:    #E5E7EB;
+      --text:      #1F2937;
+      --muted:     #4B5563;
+      --green:     #16A34A;
+      --green-bg:  #F0FDF4;
+      --green-bdr: #BBF7D0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ── Skip Link ── */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 1rem;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 999px;
+      z-index: 9999;
+      transition: top 0.2s;
+      text-decoration: none;
+    }
+    .skip-link:focus { top: 1rem; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      background: var(--navy);
+      border-bottom: 3px solid var(--gold);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+    .logo img { height: 34px; }
+    .logo-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gold-lt);
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.85);
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      background: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(130deg, var(--navy) 0%, var(--navy-mid) 100%);
+      padding: 4rem 2rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid var(--gold);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(200,151,26,0.12) 0%, transparent 65%);
+      border-radius: 50%;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(200,151,26,0.18);
+      border: 1px solid rgba(200,151,26,0.4);
+      color: var(--gold-lt);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+      position: relative;
+    }
+    .hero h1 span { color: var(--gold-lt); }
+    .hero p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.7);
+      max-width: 520px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ── Layout ── */
+    .page-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 6rem;
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      .toc-card  { display: none; }
+    }
+
+    /* ── Sections ── */
+    .policy-section {
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .policy-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--navy-mid);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .policy-section p {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      line-height: 1.75;
+    }
+
+    /* ── Feature Cards ── */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-left: 4px solid var(--gold);
+      box-shadow: 0 2px 8px rgba(0,31,63,0.06);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      box-shadow: 0 6px 20px rgba(0,31,63,0.1);
+      transform: translateY(-2px);
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .feature-icon {
+      width: 2rem; height: 2rem;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .feature-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy-mid);
+    }
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    /* ── Compliance Badge ── */
+    .compliance-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+    .compliance-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-bdr);
+    }
+
+    /* ── Contact Box ── */
+    .contact-box {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      color: var(--white);
+      margin-top: 2rem;
+    }
+    .contact-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: var(--gold-lt);
+      margin-bottom: 0.75rem;
+    }
+    .contact-box p {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 0.5rem;
+    }
+    .contact-box a {
+      color: var(--gold-lt);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(240,180,41,0.4);
+    }
+    .contact-box a:hover { border-bottom-color: var(--gold-lt); }
+
+    /* ── TOC Sidebar ── */
+    .toc-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.875rem;
+      padding: 1.25rem;
+      position: sticky;
+      top: 80px;
+      box-shadow: 0 4px 16px rgba(0,31,63,0.08);
+    }
+    .toc-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      color: var(--navy-mid);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .toc-list a {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-decoration: none;
+      display: block;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      border-left: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .toc-list a:hover {
+      color: var(--navy-mid);
+      border-left-color: var(--gold);
+      background: rgba(200,151,26,0.06);
+    }
+
+    /* ── Last Updated ── */
+    .last-updated {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      padding: 0.5rem 0.85rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 1rem 1.5rem;
+      font-size: 0.8rem;
+      border-top: 3px solid var(--gold);
+      margin-top: 3rem;
+    }
+  </style>
 </head>
 <body>
 
-  <nav class="navbar" aria-label="Main navigation">
-    <a href="https://www.anu.ac.ke/" target="_blank" rel="noopener noreferrer" class="logo">
-      <img src="https://upload.wikimedia.org/wikipedia/en/5/54/Africa_Nazarene_University_Logo.png" alt="Africa Nazarene University" />
+  <!-- Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Navbar -->
+  <nav class="navbar" aria-label="Site navigation">
+    <a href="index.html" class="logo" aria-label="ANU Attendance Home">
+      <img src="https://upload.wikimedia.org/wikipedia/en/5/54/Africa_Nazarene_University_Logo.png" alt="Africa Nazarene University logo" />
       <span class="logo-text">ANU Attendance</span>
     </a>
-    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">&#9776;</button>
-    <ul class="nav-links" id="nav-links">
-      <li><a href="#hero">Home</a></li>
-      <li><a href="#how-it-works">How It Works</a></li>
-      <li><a href="#student-signin">Sign-In</a></li>
-      <li><a href="#admin-section">Admin</a></li>
-      <li><a href="#about-system">About</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
+    <a href="index.html" class="back-btn" aria-label="Back to main site">← Back to Site</a>
   </nav>
 
-  <main>
+  <!-- Hero -->
+  <header role="banner">
+    <div class="hero">
+      <div class="hero-badge">ANU Attendance System</div>
+      <h1>Accessibility <span>Policy</span></h1>
+      <p>Africa Nazarene University is committed to making this attendance system accessible and usable for everyone, regardless of ability or technology.</p>
+    </div>
+  </header>
 
-    <!-- HERO -->
-    <section class="hero section" id="hero">
-      <div class="hero-content">
-        <div class="hero-badge">v2.0 — Firebase Edition</div>
-        <h1>ANU <span>QR Student</span> Sign-In</h1>
-        <p>Fast, paperless attendance tracking for Africa Nazarene University — library, lab, and event sign-ins made simple.</p>
-        <ul class="hero-benefits">
-          <li>No paper attendance sheets needed</li>
-          <li>Instant barcode token for every student</li>
-          <li>Cloud-stored records via Firebase</li>
-          <li>Secure admin login with email &amp; password</li>
-        </ul>
-        <div class="hero-actions">
-          <button type="button" class="btn btn-gold" onclick="document.getElementById('student-signin').scrollIntoView({behavior:'smooth'})">Try Student Sign-In</button>
-          <button type="button" class="btn btn-outline" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">How It Works</button>
-        </div>
-      </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-card-float">
-          <div class="hc-label">Today's Sign-Ins</div>
-          <div class="hc-number" id="hero-count">0</div>
-          <div class="hc-sub">students checked in</div>
-        </div>
-      </div>
-    </section>
+  <!-- Page Content -->
+  <div class="page-wrap">
+    <main id="main-content" tabindex="-1">
 
-    <!-- HOW IT WORKS -->
-    <section class="section" id="how-it-works" aria-labelledby="how-heading">
-      <h2 id="how-heading">How the System Works</h2>
-      <div class="steps-grid">
-        <div class="step-card card">
-          <div class="step-num">01</div>
-          <h3>Enter Details</h3>
-          <p>Student enters their ID, full name, and optional laptop model into the sign-in form.</p>
-        </div>
-        <div class="step-card card">
-          <div class="step-num">02</div>
-          <h3>Generate Barcode</h3>
-          <p>The system instantly creates a unique barcode token — print or download it for reuse.</p>
-        </div>
-        <div class="step-card card">
-          <div class="step-num">03</div>
-          <h3>Saved to Cloud</h3>
-          <p>Records are saved to Firebase Firestore instantly — accessible from any device, permanently.</p>
-        </div>
-      </div>
-    </section>
+      <span class="last-updated" aria-label="Last updated date">Last updated: March 2026</span>
 
-    <!-- STUDENT SIGN-IN -->
-    <section class="section" id="student-signin" aria-labelledby="signin-heading">
-      <h2 id="signin-heading">Student Sign-In</h2>
-      <div class="signin-layout">
-        <div class="card signin-card">
-          <form id="signin-form" novalidate>
-            <div class="form-group">
-              <label for="student-id">Student ID <span class="req">*</span></label>
-              <input type="text" id="student-id" required minlength="3" autocomplete="off" placeholder="e.g. S1234" />
-            </div>
-            <div class="form-group">
-              <label for="student-name">Full Name <span class="req">*</span></label>
-              <input type="text" id="student-name" required minlength="3" autocomplete="name" placeholder="e.g. Alice Mwangi" />
-            </div>
-            <div class="form-group">
-              <label for="laptop-make">Laptop Make <span class="opt">(optional)</span></label>
-              <input type="text" id="laptop-make" placeholder="e.g. Dell Inspiron" />
-            </div>
-            <button type="submit" class="btn btn-gold btn-full">Sign In &amp; Generate Barcode</button>
-          </form>
-
-          <div id="signin-status" class="status" aria-live="polite" role="alert"></div>
-
-          <div class="demo-row">
-            <label for="demo-select">Quick demo:</label>
-            <div class="demo-controls">
-              <select id="demo-select"><option value="">— choose demo student —</option></select>
-              <button type="button" id="fill-demo-btn" class="btn btn-outline-sm">Fill</button>
-            </div>
-          </div>
-
-          <div id="student-barcode" class="barcode-wrap" aria-live="polite"></div>
-          <p id="barcode-token" class="barcode-token" aria-live="polite"></p>
-          <div id="barcode-actions" class="barcode-actions">
-            <button type="button" id="print-barcode-btn" class="btn btn-outline-sm">🖨 Print</button>
-            <button type="button" id="download-barcode-btn" class="btn btn-outline-sm">⬇ Download SVG</button>
-          </div>
-
-          <div class="photo-section">
-            <img id="student-photo" src="" alt="Student avatar" class="photo-img" />
-            <div id="student-photo-info" class="photo-info"><p>No student selected yet.</p></div>
-          </div>
-        </div>
-
-        <div class="signin-side">
-          <div class="card summary-card" aria-live="polite">
-            <h3>Session Summary</h3>
-            <div class="summary-stat">
-              <span class="stat-num" id="summary-count">0</span>
-              <span class="stat-label">total sign-ins</span>
-            </div>
-            <p class="summary-last">Last: <span id="summary-last">None</span></p>
-          </div>
-          <div class="card help-card">
-            <h3>How to Use</h3>
-            <ol>
-              <li>Enter your Student ID and full name.</li>
-              <li>Optionally add your laptop make.</li>
-              <li>Click "Sign In &amp; Generate Barcode".</li>
-              <li>Print or download your barcode for next time.</li>
-            </ol>
-          </div>
-          <div class="card firebase-status-card">
-            <div class="fb-status-row">
-              <span class="fb-dot" id="fb-dot"></span>
-              <span id="fb-status-text">Connecting to Firebase…</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ADMIN -->
-    <section class="section" id="admin-section" aria-labelledby="admin-heading">
-      <h2 id="admin-heading">Admin Dashboard</h2>
-
-      <!-- Login panel -->
-      <div id="admin-login-panel" class="card admin-login-panel">
-        <h3>🔐 Admin Login</h3>
-        <p>Sign in with your administrator email and password to access records.</p>
-        <div class="form-group" style="margin-top:1rem">
-          <label for="admin-email">Email</label>
-          <input type="email" id="admin-email" placeholder="admin@anu.ac.ke" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="admin-password">Password</label>
-          <input type="password" id="admin-password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <div id="login-error" class="status"></div>
-        <button type="button" class="btn btn-gold btn-full" id="admin-login-btn">Sign In to Admin</button>
-        <p class="setup-note" id="firebase-not-configured-note" style="display:none">
-          ⚠️ Firebase not yet configured. Open <code>firebase-config.js</code> and paste your Firebase keys.
+      <!-- 1. Our Commitment -->
+      <section class="policy-section" id="commitment" aria-labelledby="commitment-heading">
+        <h2 id="commitment-heading">♿ Our Commitment</h2>
+        <p>
+          The ANU Student Sign-In System is designed to be accessible to all users, including those with visual, auditory, motor, or cognitive disabilities. We follow internationally recognised accessibility standards and continuously work to improve the experience for every user.
         </p>
-      </div>
+        <p>
+          This policy describes the specific measures we have implemented across the system to ensure accessibility. We welcome feedback from users to help us identify and address any accessibility barriers.
+        </p>
+        <div class="compliance-row">
+          <span class="compliance-badge">✓ WCAG 2.1 AA Aligned</span>
+          <span class="compliance-badge">✓ Screen Reader Friendly</span>
+          <span class="compliance-badge">✓ Keyboard Accessible</span>
+        </div>
+      </section>
 
-      <!-- Dashboard (shown after login) -->
-      <div class="card admin-card" id="admin-dashboard" style="display:none">
-        <div class="admin-header">
-          <p class="admin-title">Recent Student Sign-Ins</p>
-          <div class="admin-user-row">
-            <span id="admin-email-display" class="admin-email-badge"></span>
-            <button type="button" id="admin-logout-btn" class="btn btn-outline-sm">Sign Out</button>
+      <!-- 2. Features -->
+      <section class="policy-section" id="features" aria-labelledby="features-heading">
+        <h2 id="features-heading">🛠 Accessibility Features</h2>
+        <div class="feature-list">
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">🖼</div>
+              <h3>Alternative Text for Images</h3>
+            </div>
+            <p>All images on this website include descriptive <code>alt</code> attributes, enabling screen readers to convey visual information to users who are blind or have low vision. Decorative images are marked with <code>aria-hidden="true"</code> to avoid unnecessary clutter.</p>
           </div>
-        </div>
-        <div class="admin-actions">
-          <button type="button" id="refresh-records-btn" class="btn btn-outline-sm">↻ Refresh</button>
-          <button type="button" id="export-csv-btn" class="btn btn-outline-sm">⬇ Export CSV</button>
-          <button type="button" id="clear-records-btn" class="btn btn-danger-sm">🗑 Clear All</button>
-        </div>
-        <p class="admin-note" id="admin-source-note">Loading records…</p>
-        <div class="table-wrap" role="region" aria-label="Recent sign-ins">
-          <table id="admin-records-table">
-            <thead>
-              <tr>
-                <th>#</th><th>Token</th><th>Student ID</th><th>Name</th><th>Laptop</th><th>Time</th><th>Date</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
 
-    <!-- ABOUT -->
-    <section class="section" id="about-system" aria-labelledby="about-heading">
-      <h2 id="about-heading">About This System</h2>
-      <div class="card">
-        <p>This is a QR/barcode-based student sign-in system for Africa Nazarene University. Records are stored securely in Firebase Firestore — persistent across browsers and devices.</p>
-        <ul class="about-list">
-          <li>Designed for library, lab, and event attendance tracking.</li>
-          <li>Cloud storage via Firebase — no data lost when browser clears.</li>
-          <li>Secure admin login with email and password via Firebase Auth.</li>
-          <li>Export records to CSV from the Admin dashboard any time.</li>
-        </ul>
-      </div>
-    </section>
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">⌨️</div>
+              <h3>Keyboard Navigation</h3>
+            </div>
+            <p>Every interactive element — forms, buttons, navigation links, tabs — can be accessed and operated using only a keyboard. Focus indicators are clearly visible so users always know where they are on the page. Pressing <kbd>Tab</kbd> moves forward, <kbd>Shift+Tab</kbd> moves backward, and <kbd>Enter</kbd> or <kbd>Space</kbd> activates controls.</p>
+          </div>
 
-    <!-- CONTACT -->
-    <section class="section contact" id="contact" aria-labelledby="contact-heading">
-      <h2 id="contact-heading">Contact</h2>
-      <div class="card">
-        <p><strong>Africa Nazarene University</strong> — QR/Barcode Attendance Project</p>
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">⏭</div>
+              <h3>Skip Links</h3>
+            </div>
+            <p>A "Skip to main content" link is included at the top of every page. This allows keyboard and screen reader users to bypass the navigation menu and jump directly to the main content, avoiding repetitive navigation on every page load.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">🎨</div>
+              <h3>Colour Contrast</h3>
+            </div>
+            <p>Text and interactive elements meet WCAG 2.1 AA contrast ratio requirements (minimum 4.5:1 for normal text). Our navy and gold colour scheme was specifically chosen for strong contrast. Dark mode is also available for users who prefer reduced brightness or have photosensitivity.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">📝</div>
+              <h3>Forms and Labels</h3>
+            </div>
+            <p>All form fields have explicit <code>&lt;label&gt;</code> elements linked via <code>for</code> and <code>id</code> attributes. Required fields are marked both visually and with <code>aria-required="true"</code>. Error messages use <code>role="alert"</code> and <code>aria-live="polite"</code> so assistive technologies announce them automatically.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">📐</div>
+              <h3>Clear and Consistent Structure</h3>
+            </div>
+            <p>Pages use a logical heading hierarchy (H1 → H2 → H3) and semantic HTML elements such as <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;header&gt;</code>, and <code>&lt;footer&gt;</code>. Landmark roles help screen reader users navigate by jumping between page regions.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">🔤</div>
+              <h3>Resizable Text</h3>
+            </div>
+            <p>All text is defined using relative units (<code>rem</code>, <code>em</code>), so users can increase their browser's default font size up to 200% without loss of content or functionality. The layout adapts responsively to accommodate larger text sizes.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">📱</div>
+              <h3>Responsive Design</h3>
+            </div>
+            <p>The system is fully responsive across devices — desktop, tablet, and mobile — ensuring all users can access the sign-in system regardless of the device or screen size they are using.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card-header">
+              <div class="feature-icon" aria-hidden="true">🌙</div>
+              <h3>Dark Mode</h3>
+            </div>
+            <p>A dark mode toggle is available in the navigation bar. This benefits users with photosensitivity, migraines, or visual fatigue, and improves usability in low-light environments. The user's preference is saved automatically.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Known Limitations -->
+      <section class="policy-section" id="limitations" aria-labelledby="limitations-heading">
+        <h2 id="limitations-heading">⚠️ Known Limitations</h2>
+        <p>While we strive for full accessibility, the following areas are still being improved:</p>
+        <p><strong>Video captioning</strong> — this system does not currently include video content, so captioning is not applicable. If video content is added in future, captions will be provided.</p>
+        <p><strong>Barcode and QR code images</strong> — generated codes include a text token below them for screen reader users. We continue to explore better ways to make these outputs more accessible.</p>
+      </section>
+
+      <!-- 4. Feedback -->
+      <div class="contact-box" role="complementary" aria-label="Accessibility feedback">
+        <h2>💬 Feedback and Contact</h2>
+        <p>If you experience any accessibility barrier on this site, or if you need content in an alternative format, please contact us. We aim to respond to accessibility queries within 5 working days.</p>
         <p>Email: <a href="mailto:info@anu.ac.ke">info@anu.ac.ke</a></p>
-        <p>Website: <a href="https://www.anu.ac.ke/" target="_blank" rel="noopener noreferrer">www.anu.ac.ke</a></p>
+        <p>Website: <a href="https://www.anu.ac.ke" target="_blank" rel="noopener noreferrer">www.anu.ac.ke</a></p>
+        <p style="margin-top:0.75rem;font-size:0.82rem;color:rgba(255,255,255,0.5)">This policy was last reviewed in March 2026 and will be reviewed annually.</p>
       </div>
-    </section>
 
-  </main>
+    </main>
 
-  <footer>
-    <p>&copy; 2026 Africa Nazarene University &mdash; QR/Barcode Attendance System (v2.0 Firebase)</p>
+    <!-- Table of Contents Sidebar -->
+    <aside class="toc-card" aria-label="Page table of contents">
+      <h4>On This Page</h4>
+      <ul class="toc-list" role="list">
+        <li><a href="#commitment">Our Commitment</a></li>
+        <li><a href="#features">Accessibility Features</a></li>
+        <li><a href="#limitations">Known Limitations</a></li>
+        <li><a href="#main-content">Feedback & Contact</a></li>
+      </ul>
+    </aside>
+  </div>
+
+  <footer role="contentinfo">
+    <p>&copy; 2026 Africa Nazarene University — ANU Attendance System</p>
   </footer>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="app.js"></script>
 </body>
-
 </html>
