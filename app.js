@@ -231,14 +231,55 @@ function generateBarcode(token) {
   }
 }
 
-/* ─── QR Code ─────────────────────────────────────── */
+/* ─── QR Code with Center Logo ────────────────────── */
 function generateQRCode(token) {
   const wrap = document.getElementById('student-qrcode');
   wrap.innerHTML = '';
   const canvas = document.createElement('canvas');
   wrap.appendChild(canvas);
   try {
-    QRCode.toCanvas(canvas, token, { width: 160, margin: 1 });
+    QRCode.toCanvas(canvas, token, {
+      width:            200,
+      margin:           2,
+      errorCorrectionLevel: 'H',
+      color: { dark: '#001f3f', light: '#FFFFFF' }
+    }, function(err) {
+      if (err) {
+        wrap.innerHTML = '<p style="color:red;font-size:0.8rem">QR error</p>';
+        return;
+      }
+      // Draw ANU logo in center
+      const ctx    = canvas.getContext('2d');
+      const size   = canvas.width;
+      const logo   = new Image();
+      logo.crossOrigin = 'anonymous';
+      logo.src = 'https://upload.wikimedia.org/wikipedia/en/5/54/Africa_Nazarene_University_Logo.png';
+      logo.onload = function() {
+        const logoSize = size * 0.22;
+        const logoX    = (size - logoSize) / 2;
+        const logoY    = (size - logoSize) / 2;
+        // White background circle behind logo
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, logoSize / 2 + 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        // Draw logo
+        ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+      };
+      logo.onerror = function() {
+        // Fallback: draw ANU text in center if image fails
+        const logoSize = size * 0.22;
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, logoSize / 2 + 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.fillStyle = '#001f3f';
+        ctx.font = `bold ${size * 0.07}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('ANU', size / 2, size / 2);
+      };
+    });
   } catch (err) {
     wrap.innerHTML = '<p style="color:red;font-size:0.8rem">QR error</p>';
   }
