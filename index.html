@@ -12,6 +12,14 @@
 </head>
 <body>
 
+  <!-- Connection Status Bar -->
+  <div id="connectionStatus" role="status" aria-live="polite"></div>
+
+  <!-- Admin Toggle Button -->
+  <button id="adminToggleBtn" class="admin-toggle" style="display: none;" aria-label="Toggle admin login">
+    <span>🔐</span> Admin
+  </button>
+
   <!-- Skip Link -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -31,288 +39,344 @@
       <li><a href="#student-signin">Sign-In</a></li>
       <li><a href="#stats-section">Statistics</a></li>
       <li><a href="#lookup-section">Lookup</a></li>
-      <li><a href="#admin-section">Admin</a></li>
+      <li><a href="#adminSection" onclick="event.preventDefault(); toggleAdminView();">Admin</a></li>
       <li><a href="#about-system">About</a></li>
     </ul>
   </nav>
 
   <main id="main-content" tabindex="-1">
 
-    <!-- HERO -->
-    <section class="hero section" id="hero">
-      <div class="hero-content">
-        <div class="hero-badge">v3.0 — Full Featured</div>
-        <h1>ANU <span>Student</span> Sign-In</h1>
-        <p>Fast, paperless attendance tracking for Africa Nazarene University — library, lab, and event sign-ins with cloud storage.</p>
-        <ul class="hero-benefits">
-          <li>Barcode &amp; QR code generation</li>
-          <li>Cloud-stored records via Firebase</li>
-          <li>Attendance statistics dashboard</li>
-          <li>Student lookup by token or ID</li>
-          <li>Secure admin login</li>
-        </ul>
-        <div class="hero-actions">
-          <button type="button" class="btn btn-gold" onclick="document.getElementById('student-signin').scrollIntoView({behavior:'smooth'})">Try Student Sign-In</button>
-          <button type="button" class="btn btn-outline" onclick="document.getElementById('stats-section').scrollIntoView({behavior:'smooth'})">View Statistics</button>
+    <!-- STUDENT SECTION (wrapped for toggle functionality) -->
+    <div id="studentSection">
+      
+      <!-- HERO -->
+      <section class="hero section" id="hero">
+        <div class="hero-content">
+          <div class="hero-badge">v3.1 — Enhanced</div>
+          <h1>ANU <span>Student</span> Sign-In</h1>
+          <p>Fast, paperless attendance tracking for Africa Nazarene University — library, lab, and event sign-ins with cloud storage.</p>
+          <ul class="hero-benefits">
+            <li>Barcode &amp; QR code generation</li>
+            <li>Cloud-stored records via Firebase</li>
+            <li>Attendance statistics dashboard</li>
+            <li>Student lookup by token or ID</li>
+            <li>Secure admin login</li>
+            <li>Offline mode support</li>
+          </ul>
+          <div class="hero-actions">
+            <button type="button" class="btn btn-gold" onclick="document.getElementById('student-signin').scrollIntoView({behavior:'smooth'})">Try Student Sign-In</button>
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('stats-section').scrollIntoView({behavior:'smooth'})">View Statistics</button>
+          </div>
         </div>
-      </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-card-float">
-          <div class="hc-label">Today's Sign-Ins</div>
-          <div class="hc-number" id="hero-count">0</div>
-          <div class="hc-sub">students checked in</div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-card-float">
+            <div class="hc-label">Today's Sign-Ins</div>
+            <div class="hc-number" id="hero-count">0</div>
+            <div class="hc-sub">students checked in</div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- HOW IT WORKS -->
-    <section class="section" id="how-it-works" aria-labelledby="how-heading">
-      <h2 id="how-heading">How the System Works</h2>
-      <div class="steps-grid">
-        <div class="step-card card">
-          <div class="step-num">01</div>
-          <h3>Enter Details</h3>
-          <p>Student enters their ID, full name, and optional laptop model into the sign-in form.</p>
+      <!-- HOW IT WORKS -->
+      <section class="section" id="how-it-works" aria-labelledby="how-heading">
+        <h2 id="how-heading">How the System Works</h2>
+        <div class="steps-grid">
+          <div class="step-card card">
+            <div class="step-num">01</div>
+            <h3>Enter Details</h3>
+            <p>Student enters their ID, full name, and optional laptop model into the sign-in form.</p>
+          </div>
+          <div class="step-card card">
+            <div class="step-num">02</div>
+            <h3>Generate Code</h3>
+            <p>The system creates a unique barcode and QR code token — print or download for reuse.</p>
+          </div>
+          <div class="step-card card">
+            <div class="step-num">03</div>
+            <h3>Saved to Cloud</h3>
+            <p>Records are saved to Firebase Firestore instantly — accessible from any device, permanently.</p>
+          </div>
         </div>
-        <div class="step-card card">
-          <div class="step-num">02</div>
-          <h3>Generate Code</h3>
-          <p>The system creates a unique barcode and QR code token — print or download for reuse.</p>
-        </div>
-        <div class="step-card card">
-          <div class="step-num">03</div>
-          <h3>Saved to Cloud</h3>
-          <p>Records are saved to Firebase Firestore instantly — accessible from any device, permanently.</p>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- STUDENT SIGN-IN -->
-    <section class="section" id="student-signin" aria-labelledby="signin-heading">
-      <h2 id="signin-heading">Student Sign-In</h2>
-      <div class="signin-layout">
-        <div class="card signin-card">
-          <form id="signin-form" novalidate>
-            <div class="form-group">
-              <label for="student-id">Student ID <span class="req">*</span></label>
-              <input type="text" id="student-id" required aria-required="true" minlength="3" autocomplete="off" placeholder="e.g. S1234" />
+      <!-- STUDENT SIGN-IN -->
+      <section class="section" id="student-signin" aria-labelledby="signin-heading">
+        <h2 id="signin-heading">Student Sign-In</h2>
+        <div class="signin-layout">
+          <div class="card signin-card">
+            <form id="signin-form" novalidate>
+              <div class="form-group">
+                <label for="student-id">Student ID <span class="req">*</span></label>
+                <input type="text" id="student-id" required aria-required="true" minlength="3" maxlength="20" autocomplete="off" placeholder="e.g. S1234" pattern="[A-Za-z0-9-]+" />
+                <span class="field-error">Only letters, numbers, and hyphens allowed</span>
+                <div class="input-meta">
+                  <span>Format: ANU-2024-001</span>
+                  <span class="count"><span id="id-count">0</span>/20</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="student-name">Full Name <span class="req">*</span></label>
+                <input type="text" id="student-name" required aria-required="true" minlength="3" maxlength="50" autocomplete="name" placeholder="e.g. Alice Mwangi" />
+                <span class="field-error">Please enter your full name</span>
+                <div class="input-meta">
+                  <span>As it appears on your ID</span>
+                  <span class="count"><span id="name-count">0</span>/50</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="laptop-make">Laptop Make <span class="opt">(optional)</span></label>
+                <input type="text" id="laptop-make" maxlength="30" placeholder="e.g. Dell Inspiron" />
+                <div class="input-meta">
+                  <span>For lab equipment tracking</span>
+                  <span class="count"><span id="laptop-count">0</span>/30</span>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-gold btn-full">Sign In &amp; Generate Code</button>
+            </form>
+
+            <div id="signin-status" class="status" aria-live="polite" role="status"></div>
+            <div id="welcome-banner" class="welcome-banner" aria-live="polite"></div>
+
+            <div class="demo-row">
+              <label for="demo-select">Quick demo:</label>
+              <div class="demo-controls">
+                <select id="demo-select"><option value="">— choose demo student —</option></select>
+                <button type="button" id="fill-demo-btn" class="btn btn-outline-sm">Fill</button>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="student-name">Full Name <span class="req">*</span></label>
-              <input type="text" id="student-name" required aria-required="true" minlength="3" autocomplete="name" placeholder="e.g. Alice Mwangi" />
+
+            <!-- Code tabs -->
+            <div class="code-tabs" role="tablist">
+              <button type="button" class="code-tab active" data-tab="barcode" role="tab" aria-selected="true" aria-controls="barcode-panel">Barcode</button>
+              <button type="button" class="code-tab" data-tab="qrcode" role="tab" aria-selected="false" aria-controls="qrcode-panel">QR Code</button>
             </div>
-            <div class="form-group">
-              <label for="laptop-make">Laptop Make <span class="opt">(optional)</span></label>
-              <input type="text" id="laptop-make" placeholder="e.g. Dell Inspiron" />
+
+            <div id="barcode-panel" class="code-panel" role="tabpanel">
+              <div id="student-barcode" class="barcode-wrap" aria-live="polite">
+                <!-- Empty state -->
+                <div class="empty-state small">
+                  <span class="empty-state-icon">🎫</span>
+                  <p>Sign in to generate your barcode</p>
+                </div>
+              </div>
+              <p id="barcode-token" class="barcode-token" aria-live="polite"></p>
             </div>
-            <button type="submit" class="btn btn-gold btn-full">Sign In &amp; Generate Code</button>
-          </form>
 
-          <div id="signin-status" class="status" aria-live="polite" role="alert"></div>
-          <div id="welcome-banner" class="welcome-banner" style="display:none" aria-live="polite"></div>
+            <div id="qrcode-panel" class="code-panel" style="display:none" role="tabpanel">
+              <div id="student-qrcode" class="qrcode-wrap" aria-live="polite">
+                <!-- Empty state -->
+                <div class="empty-state small">
+                  <span class="empty-state-icon">📱</span>
+                  <p>Sign in to generate your QR code</p>
+                </div>
+              </div>
+              <p id="qrcode-token" class="barcode-token" aria-live="polite"></p>
+            </div>
 
-          <div class="demo-row">
-            <label for="demo-select">Quick demo:</label>
-            <div class="demo-controls">
-              <select id="demo-select"><option value="">— choose demo student —</option></select>
-              <button type="button" id="fill-demo-btn" class="btn btn-outline-sm">Fill</button>
+            <div id="barcode-actions" class="barcode-actions">
+              <button type="button" id="print-barcode-btn" class="btn btn-outline-sm">🖨 Print</button>
+              <button type="button" id="download-barcode-btn" class="btn btn-outline-sm">⬇ Download</button>
+            </div>
+
+            <div class="photo-section">
+              <img id="student-photo" src="" alt="Student avatar" class="photo-img" style="display: none;" />
+              <div id="student-photo-info" class="photo-info">
+                <div class="empty-state small">
+                  <span class="empty-state-icon">👤</span>
+                  <p>No student selected yet</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Code tabs -->
-          <div class="code-tabs">
-            <button type="button" class="code-tab active" data-tab="barcode">Barcode</button>
-            <button type="button" class="code-tab" data-tab="qrcode">QR Code</button>
-          </div>
-
-          <div id="barcode-panel" class="code-panel">
-            <div id="student-barcode" class="barcode-wrap" aria-live="polite"></div>
-            <p id="barcode-token" class="barcode-token" aria-live="polite"></p>
-          </div>
-
-          <div id="qrcode-panel" class="code-panel" style="display:none">
-            <div id="student-qrcode" class="qrcode-wrap" aria-live="polite"></div>
-            <p id="qrcode-token" class="barcode-token" aria-live="polite"></p>
-          </div>
-
-          <div id="barcode-actions" class="barcode-actions">
-            <button type="button" id="print-barcode-btn" class="btn btn-outline-sm">🖨 Print</button>
-            <button type="button" id="download-barcode-btn" class="btn btn-outline-sm">⬇ Download</button>
-          </div>
-
-          <div class="photo-section">
-            <img id="student-photo" src="" alt="Student avatar" class="photo-img" />
-            <div id="student-photo-info" class="photo-info"><p>No student selected yet.</p></div>
-          </div>
-        </div>
-
-        <div class="signin-side">
-          <div class="card summary-card" aria-live="polite">
-            <h3>Session Summary</h3>
-            <div class="summary-stat">
-              <span class="stat-num" id="summary-count">0</span>
-              <span class="stat-label">total sign-ins</span>
+          <div class="signin-side">
+            <div class="card summary-card" aria-live="polite">
+              <h3>Session Summary</h3>
+              <div class="summary-stat">
+                <span class="stat-num" id="summary-count">0</span>
+                <span class="stat-label">total sign-ins</span>
+              </div>
+              <p class="summary-last">Last: <span id="summary-last">None</span></p>
             </div>
-            <p class="summary-last">Last: <span id="summary-last">None</span></p>
-          </div>
-          <div class="card help-card">
-            <h3>How to Use</h3>
-            <ol>
-              <li>Enter your Student ID and full name.</li>
-              <li>Optionally add your laptop make.</li>
-              <li>Click "Sign In &amp; Generate Code".</li>
-              <li>Switch between Barcode and QR Code tabs.</li>
-              <li>Print or download your code for next time.</li>
-            </ol>
-          </div>
-          <div class="card firebase-status-card">
-            <div class="fb-status-row">
-              <span class="fb-dot" id="fb-dot"></span>
-              <span id="fb-status-text">Connecting to Firebase…</span>
+            <div class="card help-card">
+              <h3>How to Use</h3>
+              <ol>
+                <li>Enter your Student ID and full name.</li>
+                <li>Optionally add your laptop make.</li>
+                <li>Click "Sign In &amp; Generate Code".</li>
+                <li>Switch between Barcode and QR Code tabs.</li>
+                <li>Print or download your code for next time.</li>
+              </ol>
+            </div>
+            <div class="card firebase-status-card">
+              <div class="fb-status-row">
+                <span class="fb-dot" id="fb-dot"></span>
+                <span id="fb-status-text">Connecting to Firebase…</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- STATISTICS -->
-    <section class="section" id="stats-section" aria-labelledby="stats-heading">
-      <h2 id="stats-heading">Attendance Statistics</h2>
-      <div class="stats-grid">
-        <div class="card stat-card">
-          <div class="stat-icon">📋</div>
-          <div class="stat-value" id="stat-total">0</div>
-          <div class="stat-label-text">Total Sign-Ins</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-icon">📅</div>
-          <div class="stat-value" id="stat-today">0</div>
-          <div class="stat-label-text">Today</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-icon">👤</div>
-          <div class="stat-value" id="stat-unique">0</div>
-          <div class="stat-label-text">Unique Students</div>
-        </div>
-        <div class="card stat-card">
-          <div class="stat-icon">⏰</div>
-          <div class="stat-value" id="stat-peak">—</div>
-          <div class="stat-label-text">Peak Hour</div>
-        </div>
-      </div>
-      <div class="card stats-chart-card" style="margin-top:1rem">
-        <h3>Top Students (Most Sign-Ins)</h3>
-        <div id="top-students-list" class="top-students-list">
-          <p style="color:var(--grey-400);font-size:0.88rem">No records yet.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- STUDENT LOOKUP -->
-    <section class="section" id="lookup-section" aria-labelledby="lookup-heading">
-      <h2 id="lookup-heading">Student Lookup</h2>
-      <div class="card">
-        <p style="font-size:0.9rem;color:var(--grey-600);margin-bottom:1rem">Enter a token or Student ID to look up sign-in details.</p>
-        <div class="lookup-row">
-          <input type="text" id="lookup-input" placeholder="Enter token (e.g. A1B2C3D4E5) or Student ID" class="lookup-input" />
-          <button type="button" id="lookup-btn" class="btn btn-gold">Search</button>
-        </div>
-        <div id="lookup-result" class="lookup-result" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <!-- ADMIN -->
-    <section class="section" id="admin-section" aria-labelledby="admin-heading">
-      <h2 id="admin-heading">Admin Dashboard</h2>
-
-      <div id="admin-login-panel" class="card admin-login-panel">
-        <h3>🔐 Admin Login</h3>
-        <p>Sign in with your administrator email and password to access records.</p>
-        <div class="form-group" style="margin-top:1rem">
-          <label for="admin-email">Email</label>
-          <input type="email" id="admin-email" placeholder="admin@anu.ac.ke" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="admin-password">Password</label>
-          <input type="password" id="admin-password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <div id="login-error" class="status"></div>
-        <button type="button" class="btn btn-gold btn-full" id="admin-login-btn">Sign In to Admin</button>
-        <p class="setup-note" id="firebase-not-configured-note" style="display:none">
-          Firebase not yet configured. Open <code>firebase-config.js</code> and paste your keys.
-        </p>
-      </div>
-
-      <div class="card admin-card" id="admin-dashboard" style="display:none">
-        <div class="admin-header">
-          <p class="admin-title">Student Sign-In Records</p>
-          <div class="admin-user-row">
-            <span id="admin-email-display" class="admin-email-badge"></span>
-            <button type="button" id="admin-logout-btn" class="btn btn-outline-sm">Sign Out</button>
+      <!-- STATISTICS -->
+      <section class="section" id="stats-section" aria-labelledby="stats-heading">
+        <h2 id="stats-heading">Attendance Statistics</h2>
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label-text">Total Sign-Ins</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value" id="stat-today">0</div>
+            <div class="stat-label-text">Today</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">👤</div>
+            <div class="stat-value" id="stat-unique">0</div>
+            <div class="stat-label-text">Unique Students</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">⏰</div>
+            <div class="stat-value" id="stat-peak">—</div>
+            <div class="stat-label-text">Peak Hour</div>
           </div>
         </div>
+        <div class="card stats-chart-card" style="margin-top:1rem">
+          <h3>Top Students (Most Sign-Ins)</h3>
+          <div id="top-students-list" class="top-students-list">
+            <!-- Empty state handled by CSS -->
+          </div>
+        </div>
+      </section>
 
-        <!-- Filters -->
-        <div class="admin-filters">
-          <input type="text" id="admin-search" placeholder="🔍 Search by name, ID, or token…" class="filter-input" />
-          <input type="date" id="admin-date-filter" class="filter-input filter-date" />
-          <button type="button" id="clear-filters-btn" class="btn btn-outline-sm">Clear Filters</button>
+      <!-- STUDENT LOOKUP -->
+      <section class="section" id="lookup-section" aria-labelledby="lookup-heading">
+        <h2 id="lookup-heading">Student Lookup</h2>
+        <div class="card">
+          <p style="font-size:0.9rem;color:var(--grey-600);margin-bottom:1rem">Enter a token or Student ID to look up sign-in details.</p>
+          <div class="lookup-row">
+            <input type="text" id="lookup-input" placeholder="Enter token (e.g. A1B2C3D4E5) or Student ID" class="lookup-input" maxlength="20" />
+            <button type="button" id="lookup-btn" class="btn btn-gold">Search</button>
+          </div>
+          <div id="lookup-result" class="lookup-result" aria-live="polite">
+            <!-- Empty state handled by CSS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section class="section" id="about-system" aria-labelledby="about-heading">
+        <h2 id="about-heading">About This System</h2>
+        <div class="card">
+          <p>A QR/barcode-based student sign-in system for Africa Nazarene University. Records are stored securely in Firebase Firestore — persistent across browsers and devices.</p>
+          <ul class="about-list">
+            <li>Designed for library, lab, and event attendance tracking.</li>
+            <li>Cloud storage via Firebase — no data lost when browser clears.</li>
+            <li>Secure admin login with email and password via Firebase Auth.</li>
+            <li>Export records to CSV or print attendance sheets from the Admin dashboard.</li>
+            <li>Student lookup by token or Student ID.</li>
+            <li>Dark mode support for comfortable use in any lighting.</li>
+            <li>Offline mode — sign-ins saved locally when connection is lost.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="section contact" id="contact" aria-labelledby="contact-heading">
+        <h2 id="contact-heading">Contact</h2>
+        <div class="card">
+          <p><strong>Africa Nazarene University</strong> — QR/Barcode Attendance Project</p>
+          <p>Email: <a href="mailto:info@anu.ac.ke">info@anu.ac.ke</a></p>
+          <p>Website: <a href="https://www.anu.ac.ke/" target="_blank" rel="noopener noreferrer">www.anu.ac.ke</a></p>
+        </div>
+      </section>
+
+    </div><!-- /#studentSection -->
+
+    <!-- ADMIN SECTION (separate from student view) -->
+    <div id="adminSection" style="display: none;">
+      <section class="section" id="admin-section" aria-labelledby="admin-heading">
+        <h2 id="admin-heading">Admin Dashboard</h2>
+
+        <div id="admin-login-panel" class="card admin-login-panel">
+          <h3>🔐 Admin Login</h3>
+          <p>Sign in with your administrator email and password to access records.</p>
+          <div class="form-group" style="margin-top:1rem">
+            <label for="admin-email">Email</label>
+            <input type="email" id="admin-email" placeholder="admin@anu.ac.ke" autocomplete="email" required />
+          </div>
+          <div class="form-group">
+            <label for="admin-password">Password</label>
+            <input type="password" id="admin-password" placeholder="••••••••" autocomplete="current-password" required />
+          </div>
+          <div id="login-error" class="status" role="alert" aria-live="assertive"></div>
+          <button type="button" class="btn btn-gold btn-full" id="admin-login-btn">Sign In to Admin</button>
+          <p class="setup-note" id="firebase-not-configured-note" style="display:none">
+            Firebase not yet configured. Open <code>firebase-config.js</code> and paste your keys.
+          </p>
         </div>
 
-        <div class="admin-actions">
-          <button type="button" id="refresh-records-btn" class="btn btn-outline-sm">↻ Refresh</button>
-          <button type="button" id="export-csv-btn" class="btn btn-outline-sm">⬇ Export CSV</button>
-          <button type="button" id="print-sheet-btn" class="btn btn-outline-sm">🖨 Print Sheet</button>
-          <button type="button" id="clear-records-btn" class="btn btn-danger-sm">🗑 Clear All</button>
+        <div class="card admin-card" id="admin-dashboard" style="display:none">
+          <div class="admin-header">
+            <p class="admin-title">Student Sign-In Records</p>
+            <div class="admin-user-row">
+              <span id="admin-email-display" class="admin-email-badge"></span>
+              <button type="button" id="admin-logout-btn" class="btn btn-outline-sm">Sign Out</button>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="admin-filters">
+            <input type="text" id="admin-search" placeholder="🔍 Search by name, ID, or token…" class="filter-input" />
+            <input type="date" id="admin-date-filter" class="filter-input filter-date" />
+            <button type="button" id="clear-filters-btn" class="btn btn-outline-sm">Clear Filters</button>
+          </div>
+
+          <div class="admin-actions">
+            <button type="button" id="refresh-records-btn" class="btn btn-outline-sm">↻ Refresh</button>
+            <button type="button" id="export-csv-btn" class="btn btn-outline-sm">⬇ Export CSV</button>
+            <button type="button" id="print-sheet-btn" class="btn btn-outline-sm">🖨 Print Sheet</button>
+            <button type="button" id="clear-records-btn" class="btn btn-danger-sm">🗑 Clear All</button>
+          </div>
+
+          <p class="admin-note" id="admin-source-note">Loading records…</p>
+
+          <div class="table-wrap" role="region" aria-label="Recent sign-ins">
+            <table id="admin-records-table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Token</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Laptop</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Empty state -->
+                <tr>
+                  <td colspan="7" style="text-align:center;color:var(--grey-400);padding:1.5rem">
+                    Sign in to view records
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        <p class="admin-note" id="admin-source-note">Loading records…</p>
-
-        <div class="table-wrap" role="region" aria-label="Recent sign-ins">
-          <table id="admin-records-table">
-            <thead>
-              <tr>
-                <th>#</th><th>Token</th><th>Student ID</th><th>Name</th><th>Laptop</th><th>Time</th><th>Date</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="section" id="about-system" aria-labelledby="about-heading">
-      <h2 id="about-heading">About This System</h2>
-      <div class="card">
-        <p>A QR/barcode-based student sign-in system for Africa Nazarene University. Records are stored securely in Firebase Firestore — persistent across browsers and devices.</p>
-        <ul class="about-list">
-          <li>Designed for library, lab, and event attendance tracking.</li>
-          <li>Cloud storage via Firebase — no data lost when browser clears.</li>
-          <li>Secure admin login with email and password via Firebase Auth.</li>
-          <li>Export records to CSV or print attendance sheets from the Admin dashboard.</li>
-          <li>Student lookup by token or Student ID.</li>
-          <li>Dark mode support for comfortable use in any lighting.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="section contact" id="contact" aria-labelledby="contact-heading">
-      <h2 id="contact-heading">Contact</h2>
-      <div class="card">
-        <p><strong>Africa Nazarene University</strong> — QR/Barcode Attendance Project</p>
-        <p>Email: <a href="mailto:info@anu.ac.ke">info@anu.ac.ke</a></p>
-        <p>Website: <a href="https://www.anu.ac.ke/" target="_blank" rel="noopener noreferrer">www.anu.ac.ke</a></p>
-      </div>
-    </section>
+      </section>
+    </div><!-- /#adminSection -->
 
   </main>
 
   <footer role="contentinfo">
-    <p>&copy; 2026 Africa Nazarene University &mdash; QR/Barcode Attendance System (v3.0)</p>
+    <p>&copy; 2026 Africa Nazarene University &mdash; QR/Barcode Attendance System (v3.1)</p>
   </footer>
 
+  <!-- Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
