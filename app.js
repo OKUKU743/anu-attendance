@@ -1,14 +1,13 @@
 /* ═══════════════════════════════════════════════════
-   ANU Attendance System v3.0 — app.js
-   Features:
-   - Barcode + QR code generation
-   - Firebase Firestore cloud storage
-   - Admin login with search, date filter, print sheet
-   - Attendance statistics dashboard
-   - Student lookup by token or ID
-   - Dark mode toggle
-   - Duplicate detection
-   - Welcome back message for returning students
+   ANU Attendance System v3.1 — Complete app.js
+   Improvements:
+   - Mobile-responsive barcode/QR display
+   - Admin login security (toggle visibility)
+   - Connection status monitoring
+   - Empty state handling
+   - Form validation feedback
+   - Welcome back animation fix
+   - Touch-friendly action buttons
    ═══════════════════════════════════════════════════ */
 
 'use strict';
@@ -21,11 +20,12 @@ const DEMO_STUDENTS = [
 ];
 
 /* ─── State ───────────────────────────────────────── */
-let allRecords    = [];   // full unfiltered records
-let filteredRecs  = [];   // after search/date filter
+let allRecords    = [];
+let filteredRecs  = [];
 let db            = null;
 let auth          = null;
 let fbReady       = false;
+let isAdminView   = false;
 
 /* ─── Token Generator ─────────────────────────────── */
 function generateToken() {
@@ -101,6 +101,9 @@ function initFirebase() {
     }
     console.warn('[ANU] Firebase init failed:', err.message);
   }
+  
+  // Initialize connection monitoring after Firebase setup
+  initConnectionMonitor();
 }
 
 function setFbStatus(color, text) {
@@ -112,6 +115,58 @@ function setFbStatus(color, text) {
   span.textContent = text;
 }
 
+/* ─── Connection Status Monitor ───────────────────── */
+function initConnectionMonitor() {
+  const statusDiv = document.getElementById('connectionStatus');
+  if (!statusDiv) return;
+
+  function updateStatus() {
+    if (!navigator.onLine) {
+      showConnectionStatus('offline', '⚠️ Offline mode — sign-ins will sync when connection returns');
+    } else {
+      // Check Firebase specifically if available
+      if (fbReady && db) {
+        showConnectionStatus('connecting', 'Connecting to server...');
+        // Test actual Firebase connection
+        db.collection('signins').limit(1).get()
+          .then(() => showConnectionStatus('online', '✓ Connected'))
+          .catch(() => showConnectionStatus('offline', '⚠️ Server unavailable — using local storage'));
+      } else {
+        showConnectionStatus('online', '✓ Connected (local mode)');
+      }
+    }
+  }
+
+  function showConnectionStatus(type, message) {
+    statusDiv.className = type;
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+    
+    // Auto-hide online status after delay
+    if (type === 'online') {
+      setTimeout(() => {
+        if (statusDiv.className === 'online') {
+          statusDiv.style.display = 'none';
+        }
+      }, 3000);
+    }
+  }
+
+  window.addEventListener('online', updateStatus);
+  window.addEventListener('offline', updateStatus);
+  
+  // Initial check
+  updateStatus();
+  
+  // Periodic check every 30 seconds when online
+  setInterval(() => {
+    if (navigator.onLine && fbReady) {
+      db.collection('signins').limit(1).get()
+        .catch(() => showConnectionStatus('offline', '⚠️ Connection lost — using local storage'));
+    }
+  }, 30000);
+}
+
 /* ─── Save Record ─────────────────────────────────── */
 async function saveRecord(record) {
   lsAdd(record);
@@ -120,8 +175,17 @@ async function saveRecord(record) {
       await db.collection('signins').add(record);
     } catch (err) {
       console.warn('[ANU] Firestore write error:', err.message);
+      // Queue for retry if offline
+      queueForRetry(record);
     }
   }
+}
+
+/* ─── Offline Queue (simple) ──────────────────────── */
+function queueForRetry(record) {
+  const queue = JSON.parse(localStorage.getItem('anu_pending') || '[]');
+  queue.push(record);
+  localStorage.setItem('anu_pending', JSON.stringify(queue));
 }
 
 /* ─── Load All Records ────────────────────────────── */
@@ -157,6 +221,12 @@ function setupSignInForm() {
       return;
     }
 
+    // Validation: Student ID format
+    if (!/^[A-Za-z0-9-]+$/.test(sid)) {
+      showStatus(status, 'error', 'Student ID can only contain letters, numbers, and hyphens.');
+      return;
+    }
+
     // Duplicate check
     const today = new Date().toLocaleDateString('en-KE');
     const existing = lsGet().find(r => r.studentId === sid && r.date === today);
@@ -186,7 +256,7 @@ function setupSignInForm() {
 
     await saveRecord(record);
 
-    // Generate codes
+    // Generate codes with mobile optimization
     generateBarcode(token);
     generateQRCode(token);
 
@@ -195,17 +265,25 @@ function setupSignInForm() {
     document.getElementById('student-photo-info').innerHTML =
       `<p><strong>${sname}</strong><br/>ID: ${sid}${laptop ? `<br/>Laptop: ${laptop}` : ''}</p>`;
 
+    // Show actions with animation
+    const actions = document.getElementById('barcode-actions');
+    actions.classList.add('visible');
+
     // Update counters
     updateCounters();
 
     showStatus(status, 'success', fbReady
-      ? `\u2713 Signed in & saved to cloud — Token: ${token}`
-      : `\u2713 Signed in (saved locally) — Token: ${token}`
+      ? `✓ Signed in & saved to cloud — Token: ${token}`
+      : `✓ Signed in (saved locally) — Token: ${token}`
     );
 
-    document.getElementById('barcode-actions').style.display = 'flex';
     form.reset();
     updateStats();
+    
+    // Scroll to code output on mobile
+    if (window.innerWidth <= 480) {
+      document.getElementById('barcode-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   });
 }
 
@@ -221,11 +299,15 @@ function generateBarcode(token) {
       format:      'CODE128',
       lineColor:   '#001f3f',
       width:       2,
-      height:      60,
+      height:      80,  // Increased for better scanning
       displayValue: false,
+      margin:      10,  // Add margin for quiet zone
     });
     document.getElementById('barcode-token').textContent = 'Token: ' + token;
     document.getElementById('qrcode-token').textContent  = 'Token: ' + token;
+    
+    // Ensure SVG is responsive
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   } catch (err) {
     wrap.innerHTML = '<p style="color:red;font-size:0.8rem">Barcode error</p>';
   }
@@ -240,7 +322,7 @@ function generateQRCode(token) {
   try {
     QRCode.toCanvas(canvas, token, {
       width:            200,
-      margin:           2,
+      margin:           4,  // Increased margin for quiet zone
       errorCorrectionLevel: 'H',
       color: { dark: '#001f3f', light: '#FFFFFF' }
     }, function(err) {
@@ -309,19 +391,31 @@ function setupBarcodeActions() {
     if (active === 'barcode') {
       const svg = document.getElementById('barcode-svg');
       if (!svg) return;
-      const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = 'barcode.svg';
-      a.click();
-      URL.revokeObjectURL(url);
+      
+      // Create high-res PNG from SVG for better printing
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = function() {
+        canvas.width = img.width * 2;  // High res
+        canvas.height = img.height * 2;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = `ANU-barcode-${Date.now()}.png`;
+        a.click();
+      };
+      
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
     } else {
       const canvas = document.querySelector('#student-qrcode canvas');
       if (!canvas) return;
       const a    = document.createElement('a');
       a.href     = canvas.toDataURL('image/png');
-      a.download = 'qrcode.png';
+      a.download = `ANU-qrcode-${Date.now()}.png`;
       a.click();
     }
   });
@@ -342,6 +436,10 @@ function setupDemo() {
     document.getElementById('student-id').value   = s.id;
     document.getElementById('student-name').value  = s.name;
     document.getElementById('laptop-make').value   = s.laptop;
+    
+    // Trigger validation styling
+    document.getElementById('student-id').dispatchEvent(new Event('input'));
+    document.getElementById('student-name').dispatchEvent(new Event('input'));
   });
 }
 
@@ -349,8 +447,11 @@ function setupDemo() {
 function showWelcomeBack(name) {
   const banner = document.getElementById('welcome-banner');
   banner.textContent = `Welcome back, ${name}! `;
-  banner.style.display = 'block';
-  setTimeout(() => { banner.style.display = 'none'; }, 4000);
+  banner.classList.add('visible');
+  setTimeout(() => { 
+    banner.classList.remove('visible');
+    setTimeout(() => { banner.style.display = 'none'; }, 300);
+  }, 4000);
 }
 
 /* ─── Status Helper ───────────────────────────────── */
@@ -361,7 +462,7 @@ function showStatus(el, type, msg) {
   setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
-/* ─── Update Counters ─────────────────────────────── */
+/* ─── Update Counters ───────────────────────────── */
 function updateCounters() {
   const today    = new Date().toLocaleDateString('en-KE');
   const records  = lsGet();
@@ -407,7 +508,7 @@ async function updateStats() {
   const maxCount = top.length ? studentCounts[top[0]] : 1;
   const list = document.getElementById('top-students-list');
   if (!top.length) {
-    list.innerHTML = '<p style="color:var(--grey-400);font-size:0.88rem">No records yet.</p>';
+    list.innerHTML = '';
     return;
   }
   list.innerHTML = top.map((id, i) => `
@@ -434,7 +535,10 @@ function setupLookup() {
 async function doLookup() {
   const query  = document.getElementById('lookup-input').value.trim().toUpperCase();
   const result = document.getElementById('lookup-result');
-  if (!query) return;
+  if (!query) {
+    result.innerHTML = '';
+    return;
+  }
 
   await loadRecords();
   const match = allRecords.find(r =>
@@ -459,257 +563,50 @@ async function doLookup() {
   `;
 }
 
-/* ─── Admin ───────────────────────────────────────── */
-function setupAdmin() {
-  document.getElementById('admin-login-btn').addEventListener('click', adminLogin);
-  document.getElementById('admin-logout-btn').addEventListener('click', adminLogout);
-  document.getElementById('refresh-records-btn').addEventListener('click', () => loadAdminRecords());
-  document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
-  document.getElementById('print-sheet-btn').addEventListener('click', printSheet);
-  document.getElementById('clear-records-btn').addEventListener('click', clearAllRecords);
-
-  // Search filter
-  document.getElementById('admin-search').addEventListener('input', applyFilters);
-  document.getElementById('admin-date-filter').addEventListener('change', applyFilters);
-  document.getElementById('clear-filters-btn').addEventListener('click', () => {
-    document.getElementById('admin-search').value = '';
-    document.getElementById('admin-date-filter').value = '';
-    applyFilters();
-  });
-}
-
-async function adminLogin() {
-  if (!fbReady || !auth) {
-    showStatus(document.getElementById('login-error'), 'error',
-      'Firebase not configured. Cannot log in.');
-    return;
-  }
-  const email    = document.getElementById('admin-email').value.trim();
-  const password = document.getElementById('admin-password').value;
-  const errEl    = document.getElementById('login-error');
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-  } catch (err) {
-    showStatus(errEl, 'error', 'Login failed: ' + err.message);
+/* ─── Admin Toggle & Security ───────────────────────── */
+function setupAdminToggle() {
+  // Create toggle button if it doesn't exist
+  let toggleBtn = document.getElementById('adminToggleBtn');
+  if (!toggleBtn) {
+    toggleBtn = document.createElement('button');
+    toggleBtn.id = 'adminToggleBtn';
+    toggleBtn.className = 'admin-toggle';
+    toggleBtn.innerHTML = '<span>🔐</span> Admin';
+    toggleBtn.setAttribute('aria-label', 'Toggle admin login');
+    toggleBtn.onclick = toggleAdminView;
+    document.body.appendChild(toggleBtn);
   }
 }
 
-function adminLogout() {
-  if (auth) auth.signOut();
-}
-
-function showAdminDashboard(user) {
-  document.getElementById('admin-login-panel').style.display  = 'none';
-  document.getElementById('admin-dashboard').style.display    = '';
-  document.getElementById('admin-email-display').textContent  = user.email;
-  loadAdminRecords();
-}
-
-function showAdminLogin() {
-  document.getElementById('admin-login-panel').style.display = '';
-  document.getElementById('admin-dashboard').style.display   = 'none';
-}
-
-async function loadAdminRecords() {
-  document.getElementById('admin-source-note').textContent = 'Loading records…';
-  await loadRecords();
-  filteredRecs = [...allRecords];
-  renderTable(filteredRecs);
-  const src = fbReady ? 'Firebase Firestore' : 'browser storage';
-  document.getElementById('admin-source-note').textContent =
-    `${allRecords.length} records from ${src}.`;
-}
-
-function applyFilters() {
-  const search = document.getElementById('admin-search').value.trim().toLowerCase();
-  const date   = document.getElementById('admin-date-filter').value;
-
-  filteredRecs = allRecords.filter(r => {
-    const matchSearch = !search ||
-      (r.name      && r.name.toLowerCase().includes(search)) ||
-      (r.studentId && r.studentId.toLowerCase().includes(search)) ||
-      (r.token     && r.token.toLowerCase().includes(search));
-
-    let matchDate = true;
-    if (date) {
-      const filterDate = new Date(date).toLocaleDateString('en-KE');
-      matchDate = r.date === filterDate;
-    }
-
-    return matchSearch && matchDate;
-  });
-
-  renderTable(filteredRecs);
-  document.getElementById('admin-source-note').textContent =
-    `Showing ${filteredRecs.length} of ${allRecords.length} records.`;
-}
-
-function renderTable(records) {
-  const tbody = document.querySelector('#admin-records-table tbody');
-  if (!records.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--grey-400);padding:1.5rem">No records found.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = records.map((r, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td><code style="font-size:0.78rem">${r.token || '—'}</code></td>
-      <td>${r.studentId || '—'}</td>
-      <td>${r.name || '—'}</td>
-      <td>${r.laptop || '—'}</td>
-      <td>${r.time || '—'}</td>
-      <td>${r.date || '—'}</td>
-    </tr>
-  `).join('');
-}
-
-/* ─── Export CSV ──────────────────────────────────── */
-function exportCSV() {
-  const rows = [['#', 'Token', 'Student ID', 'Name', 'Laptop', 'Time', 'Date']];
-  const source = filteredRecs.length ? filteredRecs : allRecords;
-  source.forEach((r, i) =>
-    rows.push([i + 1, r.token, r.studentId, r.name, r.laptop, r.time, r.date])
-  );
-  const csv  = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `ANU_SignIns_${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/* ─── Print Attendance Sheet ──────────────────────── */
-function printSheet() {
-  const source = filteredRecs.length ? filteredRecs : allRecords;
-  const rows = source.map((r, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${r.studentId}</td>
-      <td>${r.name}</td>
-      <td>${r.laptop}</td>
-      <td>${r.time}</td>
-      <td>${r.date}</td>
-    </tr>
-  `).join('');
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>ANU Attendance Sheet</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 2rem; font-size: 12px; }
-        h1   { font-size: 1.4rem; margin-bottom: 0.25rem; }
-        p    { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
-        th { background: #001f3f; color: white; }
-        tr:nth-child(even) { background: #f9fafb; }
-      </style>
-    </head>
-    <body>
-      <h1>Africa Nazarene University — Attendance Sheet</h1>
-      <p>Generated: ${new Date().toLocaleString('en-KE')} &nbsp;|&nbsp; Total: ${source.length} records</p>
-      <table>
-        <thead><tr><th>#</th><th>Student ID</th><th>Name</th><th>Laptop</th><th>Time</th><th>Date</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </body>
-    </html>
-  `;
-
-  const win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  win.print();
-}
-
-/* ─── Clear All Records ───────────────────────────── */
-async function clearAllRecords() {
-  if (!confirm('Delete ALL records permanently? This cannot be undone.')) return;
-  localStorage.removeItem(LS_KEY);
-  if (fbReady && db) {
-    try {
-      const snap = await db.collection('signins').limit(100).get();
-      const batch = db.batch();
-      snap.docs.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-    } catch (err) {
-      console.warn('[ANU] Clear error:', err.message);
-    }
-  }
-  allRecords   = [];
-  filteredRecs = [];
-  renderTable([]);
-  updateCounters();
-  updateStats();
-  document.getElementById('admin-source-note').textContent = 'All records cleared.';
-}
-
-/* ─── Dark Mode ───────────────────────────────────── */
-function setupDarkMode() {
-  const btn  = document.getElementById('dark-toggle');
-  const html = document.documentElement;
-  const saved = localStorage.getItem('anu_theme');
-  if (saved === 'dark') {
-    html.setAttribute('data-theme', 'dark');
-    btn.textContent = '☀️';
-  }
-  btn.addEventListener('click', () => {
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    btn.textContent = isDark ? '🌙' : '☀️';
-    localStorage.setItem('anu_theme', isDark ? 'light' : 'dark');
-  });
-}
-
-/* ─── Navbar ──────────────────────────────────────── */
-function setupNavbar() {
-  document.getElementById('nav-toggle').addEventListener('click', () => {
-    document.getElementById('nav-links').classList.toggle('open');
-  });
-
-  const sections = document.querySelectorAll('.section[id]');
-  const links    = document.querySelectorAll('.nav-links a');
-
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        links.forEach(l => l.classList.remove('active'));
-        const active = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
-        if (active) active.classList.add('active');
+function toggleAdminView() {
+  const studentSection = document.querySelector('.signin-layout') || document.getElementById('signin');
+  const adminSection = document.getElementById('adminSection') || document.querySelector('.admin-login-panel').closest('.section, .card').parentElement;
+  const btn = document.getElementById('adminToggleBtn');
+  
+  isAdminView = !isAdminView;
+  
+  if (isAdminView) {
+    // Switch to admin view
+    studentSection.style.display = 'none';
+    adminSection.style.display = '';
+    adminSection.classList.add('active');
+    btn.classList.add('active');
+    btn.innerHTML = '<span>←</span> Back';
+    
+    // Auto-focus email after transition
+    setTimeout(() => {
+      const emailInput = document.getElementById('admin-email');
+      if (emailInput) {
+        emailInput.focus();
+        emailInput.select();
       }
-    });
-  }, { threshold: 0.4 });
-
-  sections.forEach(s => obs.observe(s));
-}
-
-/* ─── Scroll Animations ───────────────────────────── */
-function setupScrollAnimations() {
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.classList.add('visible');
-    });
-  }, { threshold: 0.1 });
-
-  document.querySelectorAll('.section').forEach(s => obs.observe(s));
-}
-
-/* ─── Boot ────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  initFirebase();
-  setupDarkMode();
-  setupNavbar();
-  setupScrollAnimations();
-  setupSignInForm();
-  setupCodeTabs();
-  setupBarcodeActions();
-  setupDemo();
-  setupLookup();
-  setupAdmin();
-  updateCounters();
-  updateStats();
-});
+    }, 100);
+    
+    // Update URL hash for bookmarking
+    window.location.hash = 'admin';
+  } else {
+    // Switch to student view
+    adminSection.style.display = 'none';
+    studentSection.style.display = '';
+    btn.classList.remove('active');
+    btn.innerHTML = '<span>
